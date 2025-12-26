@@ -1,38 +1,183 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>WenBoom</title>
+  <title>豹纹AI引擎|爆款好文案，自带吸金流量！</title>
   <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
-    body { font-family: sans-serif; padding: 2rem; background: #f9f9f9; }
-    #coze-chat { height: 600px; margin-top: 1rem; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      max-width: 800px;
+      margin: 2rem auto;
+      padding: 0 1.2rem;
+      background: #fff;
+      color: #222;
+      line-height: 1.6;
+    }
+    h1 {
+      text-align: center;
+      font-size: 2.2rem;
+      margin-bottom: 0.5rem;
+      color: #000;
+    }
+    .slogan {
+      text-align: center;
+      font-size: 1.1rem;
+      color: #555;
+      margin-bottom: 2rem;
+    }
+    .form-group {
+      margin: 1.2rem 0;
+    }
+    label {
+      display: block;
+      font-weight: 600;
+      margin-bottom: 0.4rem;
+      color: #333;
+    }
+    select, textarea {
+      width: 100%;
+      padding: 0.7rem;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      font-size: 1rem;
+      box-sizing: border-box;
+    }
+    button {
+      background: #0070f3;
+      color: white;
+      border: none;
+      padding: 0.8rem;
+      font-size: 1.1rem;
+      border-radius: 8px;
+      cursor: pointer;
+      width: 100%;
+      font-weight: 600;
+      transition: background 0.2s;
+    }
+    button:hover:not(:disabled) {
+      background: #005fcc;
+    }
+    button:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+    }
+    #output {
+      margin-top: 1.5rem;
+      padding: 1.2rem;
+      background: #f9f9ff;
+      border-radius: 8px;
+      border-left: 4px solid #0070f3;
+      white-space: pre-wrap;
+      line-height: 1.7;
+      font-family: inherit;
+    }
+    .note {
+      text-align: center;
+      font-size: 0.9rem;
+      color: #888;
+      margin-top: 1.5rem;
+    }
   </style>
 </head>
 <body>
-  <h1>豹纹引擎 · WenBoom</h1>
-  <p>输入产品，生成爆款文案 ↓</p>
-  <div id="coze-chat"></div>
+  <h1>豹纹AI引擎|爆款好文案，自带吸金流量！</h1>
+  <p class="slogan">输入产品或关键词，3秒生成快手、小红书、抖音、TikTok、Amazon 的爆款标题 + 文案</p>
+
+  <div class="form-group">
+    <label for="platform">选择目标平台：</label>
+    <select id="platform">
+      <option value="kuaishou">快手（中文）</option>
+      <option value="xiaohongshu">小红书（中文）</option>
+      <option value="douyin">抖音（中文）</option>
+      <option value="tiktok">TikTok（英文）</option>
+      <option value="amazon">Amazon（英文）</option>
+    </select>
+  </div>
+
+  <div class="form-group">
+    <label for="input">请输入产品或关键词：</label>
+    <textarea id="input" placeholder="例如：玫瑰口红、便携咖啡机、无线蓝牙耳机..."></textarea>
+  </div>
+
+  <button onclick="generate()" id="btn">🚀 生成爆款文案</button>
+
+  <div id="output"></div>
+
+  <p class="note">Powered By 阿里云 Qwen-Max | 豹纹AI引擎 · 爆款好文案自带吸金流量！</p>
 
   <script>
-    window.addEventListener('load', () => {
-      const script = document.createElement('script');
-      script.src = "https://sf-cdn.coze.com/obj/unpkg-va/flow-platform/chat-app/index.js";
-      script.onload = () => {
-        if (window.CozeWebSDK) {
-          new window.CozeWebSDK.WebChat({
-            config: {
-              botId: '7588116219195473973',
-              clientId: ''
-            },
-            container: document.getElementById('coze-chat'),
-          });
+    async function generate() {
+      const platform = document.getElementById('platform').value;
+      const input = document.getElementById('input').value.trim();
+      const output = document.getElementById('output');
+      const btn = document.getElementById('btn');
+
+      if (!input) {
+        alert('请输入产品或关键词');
+        return;
+      }
+
+      let systemPrompt = '';
+
+      switch (platform) {
+        case 'kuaishou':
+          systemPrompt = '你是快手爆款带货专家。请为产品生成一个吸引眼球的【标题】和一段【正文】。要求：接地气、用“老铁”“家人们”等称呼，强调性价比、真实体验，多用感叹号，结尾引导下单。输出格式：\n标题：...\n正文：...';
+          break;
+        case 'xiaohongshu':
+          systemPrompt = '你是小红书百万粉博主。请生成一个【标题】和一段【正文】。要求：第一人称、精致生活感、有痛点解决、带emoji、结尾加3个#话题标签。输出格式：\n标题：...\n正文：...';
+          break;
+        case 'douyin':
+          systemPrompt = '你是抖音短视频脚本高手。请生成一个【标题】（即视频开头钩子）和一段【正文】（口播文案）。要求：前3秒抓人（如“千万别买！”“后悔没早用”），节奏快、口语化，结尾引导点赞评论。输出格式：\n标题：...\n正文：...';
+          break;
+        case 'tiktok':
+          systemPrompt = 'You are a TikTok viral copywriter. Generate a catchy 【Title】 and engaging 【Content】 in English. Include emojis, a strong hook (e.g., "This changed my life!"), and end with hashtags or CTA like "Save now!". Output format:\nTitle: ...\nContent: ...';
+          break;
+        case 'amazon':
+          systemPrompt = 'You are an Amazon listing expert. Generate a compelling 【Title】 (under 80 chars) and detailed 【Bullet Points / Description】 in professional English. Focus on benefits, solve pain points, and sound trustworthy. Output format:\nTitle: ...\nContent: ...';
+          break;
+        default:
+          systemPrompt = 'Generate a viral-style title and content for the given product.';
+      }
+
+      output.textContent = 'AI 正在生成爆款文案，请稍候...';
+      output.style.opacity = '0.8';
+      btn.disabled = true;
+
+      try {
+        const res = await fetch('https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Authorization': 'Bearer YOUR_API_KEY', // ←←← 替换为你的 API Key
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            model: 'qwen-max',
+            messages: [
+              { role: 'system', content: systemPrompt },
+              { role: 'user', content: `产品：${input}` }
+            ],
+            temperature: 0.85,
+            max_tokens: 600
+          })
+        });
+
+        const data = await res.json();
+
+        if (data.choices?.[0]?.message?.content) {
+          output.textContent = data.choices[0].message.content;
+        } else {
+          output.textContent = '❌ 生成失败\n可能原因：API 配额不足或网络问题，请稍后重试。';
+          console.error('API Error:', data);
         }
-      };
-      script.onerror = () => {
-        document.getElementById('coze-chat').innerHTML = '<p style="color:#999;">加载失败，请刷新或稍后再试</p>';
-      };
-      document.head.appendChild(script);
-    });
+      } catch (err) {
+        output.textContent = '⚠️ 网络错误\n请检查网络连接，或稍后再试。';
+        console.error('Fetch Error:', err);
+      }
+
+      output.style.opacity = '1';
+      btn.disabled = false;
+    }
   </script>
 </body>
 </html>
