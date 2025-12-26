@@ -1,14 +1,37 @@
 <!DOCTYPE html>
 <html>
-<head><title>WenBoom</title></head>
+<head>
+  <title>WenBoom</title>
+  <meta charset="utf-8">
+  <style>
+    body { font-family: sans-serif; padding: 2rem; background: #f9f9f9; }
+    #coze-chat { height: 600px; margin-top: 1rem; }
+  </style>
+</head>
 <body>
-  <h1>豹纹引擎加载中...</h1>
+  <h1>豹纹引擎 · WenBoom</h1>
+  <p>输入产品，生成爆款文案 ↓</p>
   <div id="coze-chat"></div>
-  <script src="https://sf-cdn.coze.com/obj/unpkg-va/flow-platform/chat-app/index.js"></script>
+
   <script>
-    new window.CozeWebSDK.WebChat({
-      config: { botId: '7588116219195473973', clientId: '' },
-      container: document.getElementById('coze-chat'),
+    window.addEventListener('load', () => {
+      const script = document.createElement('script');
+      script.src = "https://sf-cdn.coze.com/obj/unpkg-va/flow-platform/chat-app/index.js";
+      script.onload = () => {
+        if (window.CozeWebSDK) {
+          new window.CozeWebSDK.WebChat({
+            config: {
+              botId: '7588116219195473973',
+              clientId: ''
+            },
+            container: document.getElementById('coze-chat'),
+          });
+        }
+      };
+      script.onerror = () => {
+        document.getElementById('coze-chat').innerHTML = '<p style="color:#999;">加载失败，请刷新或稍后再试</p>';
+      };
+      document.head.appendChild(script);
     });
   </script>
 </body>
