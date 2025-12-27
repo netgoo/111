@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>豹纹AI引擎</title>
+  <title>豹纹AI引擎 · WenBoom</title>
   <style>
     :root {
       --primary: #6A35FF;
@@ -147,13 +147,20 @@
       margin-bottom: 0.5rem;
       color: #333;
     }
-    input, select, textarea {
+    input, textarea {
       width: 100%;
       padding: 0.8rem;
       border: 1px solid #ddd;
       border-radius: 10px;
       font-size: 1rem;
       background: #fafafa;
+    }
+    /* Checkbox styling */
+    .form-group div[style*="grid"] {
+      margin-top: 0.4rem;
+    }
+    .form-group label > input[type="checkbox"] {
+      margin-right: 0.4rem;
     }
     button {
       background: var(--primary);
@@ -363,17 +370,7 @@
     <!-- Form -->
     <div class="form">
       <div class="usage-count">今日剩余：<span id="count">5</span> 次</div>
-      <div class="form-group">
-        <label for="platform">选择目标平台：</label>
-        <select id="platform">
-          <option value="kuaishou">快手（中文）</option>
-          <option value="xiaohongshu">小红书（中文）</option>
-          <option value="douyin">抖音（中文）</option>
-          <option value="tiktok">TikTok（英文）</option>
-          <option value="amazon">Amazon（英文）</option>
-        </select>
-      </div>
-
+      
       <div class="form-group">
         <label for="input">产品或关键词：</label>
         <textarea id="input" placeholder="例如：玫瑰口红、便携咖啡机..."></textarea>
@@ -387,6 +384,27 @@
       <div class="form-group">
         <label for="selling_point">核心卖点（推荐填写）：</label>
         <input type="text" id="selling_point" placeholder="例如：30秒出咖啡、FDA认证、不沾杯...">
+      </div>
+
+      <!-- Platform Multi-select -->
+      <div class="form-group">
+        <label>✅ 选择要生成的平台（可多选）：</label>
+        <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(120px,1fr)); gap:0.6rem; margin-top:0.4rem;">
+          <label><input type="checkbox" id="plat_xiaohongshu" checked> 小红书</label>
+          <label><input type="checkbox" id="plat_douyin" checked> 抖音</label>
+          <label><input type="checkbox" id="plat_kuaishou" checked> 快手</label>
+          <label><input type="checkbox" id="plat_tiktok" checked> TikTok</label>
+          <label><input type="checkbox" id="plat_amazon" checked> Amazon</label>
+        </div>
+        <p style="font-size:0.85rem; color:#888; margin-top:0.5rem;">
+          💡 默认全选，按需取消。只生成你选的平台，节省时间和Token。
+        </p>
+      </div>
+
+      <!-- VIP Key Input (optional) -->
+      <div class="form-group">
+        <label>VIP 密钥（如有）：</label>
+        <input type="text" id="vipKey" placeholder="输入你收到的VIP密钥">
       </div>
 
       <button onclick="generate()" id="btn">🚀 生成爆款文案</button>
@@ -441,13 +459,21 @@
          • 自动保存历史记录<br>
          • 高级模板：节日促销 / 差评反击 / 新品首发<br>
          • 专属客服支持</p>
-      <button class="close" onclick="hideVipModal()">立即开通（开发中）</button>
+      <p style="font-size:0.9rem; color:#888; margin-bottom:1rem;">
+        👉 联系客服微信：wenboom_vip，付款后获取密钥
+      </p>
+      <button class="close" onclick="hideVipModal()">我知道了</button>
     </div>
   </div>
 
   <script>
-    // 初始化使用次数（基于 localStorage）
+    // 初始化使用状态
     function initUsage() {
+      const isVip = localStorage.getItem('wenboom_vip') === 'true';
+      if (isVip) {
+        document.getElementById('count').textContent = '∞';
+        return;
+      }
       const today = new Date().toDateString();
       let usage = JSON.parse(localStorage.getItem('wenboom_usage') || '{}');
       if (usage.date !== today) {
@@ -455,7 +481,6 @@
       }
       localStorage.setItem('wenboom_usage', JSON.stringify(usage));
       updateCountUI(5 - usage.count);
-      return usage.count;
     }
 
     function updateCountUI(remaining) {
@@ -485,14 +510,23 @@
     let lastOutput = '';
 
     async function generate() {
-      // 检查使用次数
-      const usage = JSON.parse(localStorage.getItem('wenboom_usage') || '{}');
-      if (usage.count >= 5) {
-        showVipModal();
+      // 检查 VIP 密钥（如有）
+      const keyInput = document.getElementById('vipKey').value.trim();
+      if (keyInput === 'WENBOOM2025VIP') {
+        localStorage.setItem('wenboom_vip', 'true');
+        alert('✅ VIP 已激活！刷新页面生效。');
         return;
       }
 
-      const platform = document.getElementById('platform').value;
+      const isVip = localStorage.getItem('wenboom_vip') === 'true';
+      if (!isVip) {
+        const usage = JSON.parse(localStorage.getItem('wenboom_usage') || '{}');
+        if (usage.count >= 5) {
+          showVipModal();
+          return;
+        }
+      }
+
       const product = document.getElementById('input').value.trim();
       const audience = document.getElementById('audience').value.trim() || '目标用户';
       const sellingPoint = document.getElementById('selling_point').value.trim() || '核心优势';
@@ -502,108 +536,123 @@
         return;
       }
 
-      // 构建 Prompt
-      let systemPrompt = '';
-      switch (platform) {
-        case 'xiaohongshu':
-          systemPrompt = `你是一个百万粉小红书博主。请根据以下信息生成【标题】和【正文】：
-- 产品：${product}
-- 目标人群：${audience}
-- 核心卖点：${sellingPoint}
+      // 获取选中平台
+      const selectedPlatforms = [];
+      const platformMap = {
+        plat_xiaohongshu: { id: 'xiaohongshu', name: '小红书' },
+        plat_douyin: { id: 'douyin', name: '抖音' },
+        plat_kuaishou: { id: 'kuaishou', name: '快手' },
+        plat_tiktok: { id: 'tiktok', name: 'TikTok' },
+        plat_amazon: { id: 'amazon', name: 'Amazon' }
+      };
 
-要求：
-1. 标题必须包含数字或冲突感（如“被同事追问5次！”）
-2. 正文用第一人称，描述使用场景+解决痛点，带emoji
-3. 结尾加3个精准#话题标签
+      for (const [key, info] of Object.entries(platformMap)) {
+        if (document.getElementById(key)?.checked) {
+          selectedPlatforms.push(info);
+        }
+      }
+
+      if (selectedPlatforms.length === 0) {
+        alert('请至少选择一个平台');
+        return;
+      }
+
+      // 构建 Prompt
+      function buildPrompt(platformId, product, audience, sellingPoint) {
+        switch (platformId) {
+          case 'xiaohongshu':
+            return `你是一个百万粉小红书博主。产品：${product}。目标人群：${audience}。核心卖点：${sellingPoint}。
+请生成【标题】和【正文】：
+- 标题：必须含数字/冲突/结果（如“被问了10次链接！”）
+- 正文：第一人称，描述使用场景+解决痛点，带emoji
+- 结尾：加3个精准#话题标签
 输出格式：
+【小红书】
 标题：...
 正文：...`;
-          break;
-        case 'douyin':
-          systemPrompt = `你是抖音短视频脚本高手。产品：${product}。目标人群：${audience}。核心卖点：${sellingPoint}。
+          case 'douyin':
+            return `你是抖音短视频脚本高手。产品：${product}。目标人群：${audience}。核心卖点：${sellingPoint}。
 要求：
 - 标题：前3秒高冲击（如“千万别买！”“后悔没早用”）
 - 正文：节奏快、口语化、引导点赞评论
 输出格式：
+【抖音】
 标题：...
 正文：...`;
-          break;
-        case 'kuaishou':
-          systemPrompt = `你是快手带货达人。产品：${product}。目标人群：${audience}。核心卖点：${sellingPoint}。
+          case 'kuaishou':
+            return `你是快手带货达人。产品：${product}。目标人群：${audience}。核心卖点：${sellingPoint}。
 要求：
 - 标题：突出性价比或稀缺感
 - 正文：用“老铁”“家人们”，强调真实体验，多感叹号，结尾引导下单
 输出格式：
+【快手】
 标题：...
 正文：...`;
-          break;
-        case 'tiktok':
-          systemPrompt = `You are a TikTok viral copywriter. Product: ${product}. Target audience: ${audience}. Key selling point: ${sellingPoint}.
+          case 'tiktok':
+            return `You are a TikTok viral copywriter. Product: ${product}. Target audience: ${audience}. Key selling point: ${sellingPoint}.
 Generate:
 - Title: Hook with result or shock (e.g., "This changed my life!")
 - Content: Trendy, emojis, CTA like "Save now!", relevant hashtags
 Output format:
+【TikTok】
 Title: ...
 Content: ...`;
-          break;
-        case 'amazon':
-          systemPrompt = `You are an Amazon listing expert. Product: ${product}. Target audience: ${audience}. Key selling point: ${sellingPoint}.
+          case 'amazon':
+            return `You are an Amazon listing expert. Product: ${product}. Target audience: ${audience}. Key selling point: ${sellingPoint}.
 Generate:
 - Title: Under 80 chars, include key benefit
 - Content: Bullet points or paragraph, professional English, solve pain points, avoid "best"
 Output format:
+【Amazon】
 Title: ...
 Content: ...`;
-          break;
+          default:
+            return '';
+        }
       }
-
-      const fullPrompt = systemPrompt;
 
       const outputEl = document.getElementById('output');
       const btn = document.getElementById('btn');
-
       outputEl.style.display = 'block';
-      outputEl.innerHTML = '<div class="loading-text">豹纹AI正在应用爆款方法论</div>';
+      outputEl.innerHTML = `<div class="loading-text">豹纹AI正在生成 ${selectedPlatforms.length} 个平台文案</div>`;
       btn.disabled = true;
 
-      try {
-        const res = await fetch('https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions', {
-          method: 'POST',
-          headers: {
-            'Authorization': 'Bearer sk-5840bc88979241bb98093a16d88df1b6',  
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            model: 'qwen-max',
-            messages: [{ role: 'user', content: fullPrompt }],
-            temperature: 0.85,
-            max_tokens: 700
-          })
-        });
+      let allResults = [];
 
-        const data = await res.json();
-
-        if (data.choices?.[0]?.message?.content) {
-          const raw = data.choices[0].message.content;
-          lastOutput = raw;
-
-          let insight = '💡 本条文案已按平台特性优化，预估转化效果优于通用写法。';
-          if (platform === 'xiaohongshu') {
-            insight = '💡 爆款逻辑：标题含冲突/结果 → 小红书点击率提升；正文聚焦场景痛点 → 促发共鸣；精准标签覆盖双流量池。';
-          } else if (platform === 'tiktok') {
-            insight = '💡 爆款逻辑：Hook开头抓眼球 → 提升完播率；Emojis+Hashtags → 增强互动；行动号召 → 提高保存率。';
+      for (const p of selectedPlatforms) {
+        const prompt = buildPrompt(p.id, product, audience, sellingPoint);
+        try {
+          const res = await fetch('https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions', {
+            method: 'POST',
+            headers: {
+              'Authorization': 'Bearer sk-5840bc88979241bb98093a16d88df1b6', 
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              model: 'qwen-max',
+              messages: [{ role: 'user', content: prompt }],
+              temperature: 0.85,
+              max_tokens: 400
+            })
+          });
+          const data = await res.json();
+          if (data.choices?.[0]?.message?.content) {
+            allResults.push(data.choices[0].message.content);
+          } else {
+            allResults.push(`【${p.name}】\n❌ 生成失败`);
           }
-
-          outputEl.innerHTML = `<span id="copy-btn" onclick="copyText()">📋 复制</span>\n\n${raw}\n\n<div class="insight">${insight}</div>`;
-          
-          // 记录使用
-          incrementUsage();
-        } else {
-          outputEl.innerHTML = '❌ 生成失败\n可能是API额度不足，请稍后重试。';
+        } catch (err) {
+          allResults.push(`【${p.name}】\n⚠️ 网络错误`);
         }
-      } catch (err) {
-        outputEl.innerHTML = '⚠️ 网络错误，请检查网络或稍后再试。';
-        console.error(err);
+      }
+
+      lastOutput = allResults.join('\n\n──────────────\n\n');
+      const insight = `\n\n💡 爆款逻辑：按平台定制表达——小红书重场景共鸣，抖音重情绪冲击，TikTok重趋势互动，Amazon重专业信任。`;
+
+      outputEl.innerHTML = `<span id="copy-btn" onclick="copyText()">📋 复制全部</span>\n\n${lastOutput}\n\n<div class="insight">${insight}</div>`;
+
+      if (!isVip) {
+        incrementUsage();
       }
 
       btn.disabled = false;
@@ -619,7 +668,7 @@ Content: ...`;
       });
     }
 
-    // 初始化
+    // 启动
     initUsage();
   </script>
 </body>
