@@ -26,10 +26,28 @@
       margin: 0 auto;
     }
 
+    /* VIP Banner */
+    .vip-banner {
+      background: linear-gradient(to right, #ffebee, #f3e5f5);
+      border: 1px solid #e1bee7;
+      border-radius: 12px;
+      padding: 0.8rem 1.2rem;
+      text-align: center;
+      margin-bottom: 1.8rem;
+      font-size: 0.95rem;
+      color: #d81b60;
+      font-weight: 600;
+    }
+    .vip-banner a {
+      color: var(--primary);
+      text-decoration: underline;
+      margin-left: 0.3rem;
+    }
+
     /* Hero */
     .hero {
       text-align: center;
-      margin-bottom: 2.5rem;
+      margin-bottom: 2rem;
     }
     .hero h1 {
       font-size: 2.6rem;
@@ -54,7 +72,7 @@
       justify-content: space-between;
       flex-wrap: wrap;
       gap: 1rem;
-      margin-bottom: 2.2rem;
+      margin-bottom: 2rem;
     }
     .pillar {
       background: white;
@@ -77,7 +95,7 @@
       background: white;
       padding: 1.4rem;
       border-radius: 12px;
-      margin-bottom: 2rem;
+      margin-bottom: 1.5rem;
       box-shadow: 0 4px 12px rgba(0,0,0,0.03);
     }
     .pain-points h2 {
@@ -93,6 +111,14 @@
       color: var(--gray);
     }
 
+    .guide-text {
+      text-align: center;
+      font-size: 1.15rem;
+      color: var(--primary);
+      font-weight: 600;
+      margin-bottom: 2rem;
+    }
+
     /* Form */
     .form {
       background: white;
@@ -100,6 +126,17 @@
       border-radius: 16px;
       box-shadow: 0 6px 20px rgba(0,0,0,0.05);
       margin-bottom: 2rem;
+      position: relative;
+    }
+    .usage-count {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      background: #e0dfff;
+      color: var(--primary);
+      padding: 0.2rem 0.6rem;
+      border-radius: 20px;
+      font-size: 0.85rem;
     }
     .form-group {
       margin-bottom: 1.3rem;
@@ -206,16 +243,23 @@
     /* Footer */
     footer {
       text-align: center;
-      padding: 1.2rem 0;
+      padding: 1.5rem 0 2rem;
       color: var(--gray);
       font-size: 1rem;
-      font-weight: 600;
+      line-height: 1.5;
     }
-    .vip-note {
-      text-align: center;
-      font-size: 0.85rem;
-      color: var(--gray);
-      margin-top: 1rem;
+    .copyright {
+      font-size: 0.9rem;
+      color: #999;
+      margin-top: 8px;
+    }
+    .vip-footer {
+      margin-top: 12px;
+      font-size: 0.95rem;
+    }
+    .vip-footer a {
+      color: var(--primary);
+      text-decoration: underline;
     }
 
     /* Loading */
@@ -229,7 +273,45 @@
       66% { content: '...'; }
     }
 
-    /* Responsive */
+    /* Modal */
+    #vipModal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.6);
+      z-index: 1000;
+    }
+    .modal-content {
+      background: white;
+      margin: 10% auto;
+      padding: 2rem;
+      width: 90%;
+      max-width: 500px;
+      border-radius: 16px;
+      text-align: center;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+    }
+    .modal-content h2 {
+      color: var(--primary);
+      margin-bottom: 1rem;
+    }
+    .modal-content p {
+      margin-bottom: 1.5rem;
+      color: #555;
+    }
+    .close {
+      background: var(--primary);
+      color: white;
+      border: none;
+      padding: 0.8rem 1.5rem;
+      border-radius: 10px;
+      font-size: 1rem;
+      cursor: pointer;
+    }
+
     @media (max-width: 600px) {
       .hero h1 { font-size: 2.1rem; }
       .hero p.slogan { font-size: 1.1rem; }
@@ -240,6 +322,11 @@
 </head>
 <body>
   <div class="container">
+    <!-- VIP Top Banner -->
+    <div class="vip-banner">
+      💎 免费用户每日限 5 次生成 | <a href="#" onclick="showVipModal(); return false;">升级 VIP 无限使用</a>
+    </div>
+
     <!-- Hero -->
     <div class="hero">
       <h1>豹纹AI引擎</h1>
@@ -249,13 +336,13 @@
     <!-- Value Pillars -->
     <div class="pillars">
       <div class="pillar">
-        🎯<br><h3>精准打人</h3>
+        🎯<br><h3>精准触达用户</h3>
       </div>
       <div class="pillar">
-        🌍<br><h3>全球合规</h3>
+        🌍<br><h3>平台合规适配</h3>
       </div>
       <div class="pillar">
-        ⚡<br><h3>批量作战</h3>
+        ⚡<br><h3>一键生成5平台</h3>
       </div>
     </div>
 
@@ -270,8 +357,12 @@
       </div>
     </div>
 
+    <!-- Guide Text -->
+    <p class="guide-text">现在用豹纹AI引擎 WenBoom，让你一次搞定！</p>
+
     <!-- Form -->
     <div class="form">
+      <div class="usage-count">今日剩余：<span id="count">5</span> 次</div>
       <div class="form-group">
         <label for="platform">选择目标平台：</label>
         <select id="platform">
@@ -299,7 +390,9 @@
       </div>
 
       <button onclick="generate()" id="btn">🚀 生成爆款文案</button>
-      <p class="vip-note">💡 填写人群和卖点，文案转化率提升 3 倍！</p>
+      <p style="text-align:center; font-size:0.85rem; color:#888; margin-top:12px;">
+        💡 填写人群和卖点，文案转化率提升 3 倍！
+      </p>
     </div>
 
     <!-- Output -->
@@ -332,14 +425,73 @@
 
     <!-- Footer -->
     <footer>
-      豹纹AI引擎 · 把电商爆款方法论，变成你的AI外挂，爆款好文案自带吸金流量！
+      豹纹AI引擎 · 把电商爆款方法论，变成你的AI外挂，爆款好文案自带吸金流量！<br>
+      <div class="vip-footer">
+        💎 <a href="#" onclick="showVipModal(); return false;">升级 VIP 无限生成 + 历史记录同步</a>
+      </div>
+      <div class="copyright">wenboom.com © 2025  Power By Qwen-Max & Bailian</div>
     </footer>
   </div>
 
+  <!-- VIP Modal -->
+  <div id="vipModal">
+    <div class="modal-content">
+      <h2>🚀 升级 VIP，解锁全部能力</h2>
+      <p>• 每日生成次数不限<br>
+         • 自动保存历史记录<br>
+         • 高级模板：节日促销 / 差评反击 / 新品首发<br>
+         • 专属客服支持</p>
+      <button class="close" onclick="hideVipModal()">立即开通（开发中）</button>
+    </div>
+  </div>
+
   <script>
+    // 初始化使用次数（基于 localStorage）
+    function initUsage() {
+      const today = new Date().toDateString();
+      let usage = JSON.parse(localStorage.getItem('wenboom_usage') || '{}');
+      if (usage.date !== today) {
+        usage = { date: today, count: 0 };
+      }
+      localStorage.setItem('wenboom_usage', JSON.stringify(usage));
+      updateCountUI(5 - usage.count);
+      return usage.count;
+    }
+
+    function updateCountUI(remaining) {
+      document.getElementById('count').textContent = Math.max(0, remaining);
+    }
+
+    function incrementUsage() {
+      const usage = JSON.parse(localStorage.getItem('wenboom_usage'));
+      usage.count += 1;
+      localStorage.setItem('wenboom_usage', JSON.stringify(usage));
+      updateCountUI(5 - usage.count);
+    }
+
+    function showVipModal() {
+      document.getElementById('vipModal').style.display = 'block';
+    }
+
+    function hideVipModal() {
+      document.getElementById('vipModal').style.display = 'none';
+    }
+
+    window.onclick = function(event) {
+      const modal = document.getElementById('vipModal');
+      if (event.target === modal) hideVipModal();
+    };
+
     let lastOutput = '';
 
     async function generate() {
+      // 检查使用次数
+      const usage = JSON.parse(localStorage.getItem('wenboom_usage') || '{}');
+      if (usage.count >= 5) {
+        showVipModal();
+        return;
+      }
+
       const platform = document.getElementById('platform').value;
       const product = document.getElementById('input').value.trim();
       const audience = document.getElementById('audience').value.trim() || '目标用户';
@@ -350,15 +502,19 @@
         return;
       }
 
-      // 构建专业 Prompt
+      // 构建 Prompt
       let systemPrompt = '';
       switch (platform) {
         case 'xiaohongshu':
-          systemPrompt = `你是一个百万粉小红书博主。产品：${product}。目标人群：${audience}。核心卖点：${sellingPoint}。
-请生成【标题】和【正文】：
-- 标题：必须含数字/冲突/结果（如“被问了10次链接！”）
-- 正文：第一人称，描述使用场景+解决痛点，带emoji
-- 结尾：加3个精准#话题标签
+          systemPrompt = `你是一个百万粉小红书博主。请根据以下信息生成【标题】和【正文】：
+- 产品：${product}
+- 目标人群：${audience}
+- 核心卖点：${sellingPoint}
+
+要求：
+1. 标题必须包含数字或冲突感（如“被同事追问5次！”）
+2. 正文用第一人称，描述使用场景+解决痛点，带emoji
+3. 结尾加3个精准#话题标签
 输出格式：
 标题：...
 正文：...`;
@@ -401,6 +557,8 @@ Content: ...`;
           break;
       }
 
+      const fullPrompt = systemPrompt;
+
       const outputEl = document.getElementById('output');
       const btn = document.getElementById('btn');
 
@@ -412,13 +570,12 @@ Content: ...`;
         const res = await fetch('https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions', {
           method: 'POST',
           headers: {
-            'Authorization': 'Bearer sk-5840bc88979241bb98093a16d88df1b6', 
+            'Authorization': 'Bearer sk-5840bc88979241bb98093a16d88df1b6',  
             'Content-Type': 'application/json'
           },
           body: JSON.stringify({
             model: 'qwen-max',
-            messages: [{ role: 'user', content: '开始生成' }],
-            system: systemPrompt,
+            messages: [{ role: 'user', content: fullPrompt }],
             temperature: 0.85,
             max_tokens: 700
           })
@@ -430,17 +587,17 @@ Content: ...`;
           const raw = data.choices[0].message.content;
           lastOutput = raw;
 
-          // 自动生成洞察（简化版）
-          let insight = '';
+          let insight = '💡 本条文案已按平台特性优化，预估转化效果优于通用写法。';
           if (platform === 'xiaohongshu') {
             insight = '💡 爆款逻辑：标题含冲突/结果 → 小红书点击率提升；正文聚焦场景痛点 → 促发共鸣；精准标签覆盖双流量池。';
           } else if (platform === 'tiktok') {
             insight = '💡 爆款逻辑：Hook开头抓眼球 → 提升完播率；Emojis+Hashtags → 增强互动；行动号召 → 提高保存率。';
-          } else {
-            insight = '💡 本条文案已按平台特性优化，预估转化效果优于通用写法。';
           }
 
           outputEl.innerHTML = `<span id="copy-btn" onclick="copyText()">📋 复制</span>\n\n${raw}\n\n<div class="insight">${insight}</div>`;
+          
+          // 记录使用
+          incrementUsage();
         } else {
           outputEl.innerHTML = '❌ 生成失败\n可能是API额度不足，请稍后重试。';
         }
@@ -461,6 +618,9 @@ Content: ...`;
         setTimeout(() => btn.innerText = original, 1500);
       });
     }
+
+    // 初始化
+    initUsage();
   </script>
 </body>
 </html>
